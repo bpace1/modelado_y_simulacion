@@ -1,5 +1,6 @@
-install.packages("ggplot2")
 library(ggplot2)
+library(ggplot2)
+library(tidyr)
 
 # Vector de Frecuencias Relativas de nacimientos por días del año.
 p = c(rep(96, 61), 
@@ -10,9 +11,18 @@ p = c(rep(96, 61),
       rep(106, 30), 
       25) # Este 25 corresponde al 29/2 que sólo se da en años bisiestos.
 
-## Ejercicio 6-1
-# Escalado del vector
-length(p); 1/366; unique(p / sum(p));
+
+
+## Ejercicio 6-1 ##
+
+# Cantidad de elementos en p 
+length(p);
+
+# Frecuencia Relativa de un día en caso de su distribución sea uniforme
+1/366;
+
+# Distintas probabilidades posibles para la selección de día
+unique(p / sum(p));
 
 # Gráfico de las probabilidad de cada día
 plot(1:366, p/sum(p), type = 'p', xlab = 'Día',
@@ -20,7 +30,7 @@ plot(1:366, p/sum(p), type = 'p', xlab = 'Día',
 abline(h = 1/366, lwd = 2, col ='red')
 
 
-# Versión mejorada
+# Versión mejorada del gráfico
 df <- data.frame(
   dia = 1:366,
   prob = p / sum(p)
@@ -36,58 +46,99 @@ ggplot(df, aes(x = dia, y = prob)) +
 
 
 
-## Ejercicio 6-2
+## Ejercicio 6-2 ## 
+
 set.seed(1237)       
 N = 100000; n = 25                                  # Nro de repeticiones; n° personas en la habitación
 coincidencias = coincidencias_p = numeric(N)        # Inicialización del vector "X: n° de coincidencias" para almacenar los resultados.
 
 
-for (i in 1:N) # for para la simulación
+# Bucle con las N repeticiones de simulación
+for (i in 1:N) 
 {
-  # n fechas de cumpleaños al azar, con probabilidad p 
-  sample_p = sample(x = 1:366, size = 25, repl = TRUE, prob =  p)  # distribución no uniforme
-  sample = sample(x = 1:366, size = 25, repl = TRUE) # distribución uniforme
+  # Muestras del dia de cumpleaños de 25 personas
+  sample_p = sample(x = 1:366, size = 25, repl = TRUE, prob =  p)   # Distribución no uniforme
+  sample = sample(x = 1:366, size = 25, repl = TRUE)                # Distribución uniforme
   
-  # Nro de coincidencias en i-ésima iteración
-  coincidencias_p[i] = n - length(unique(sample_p))   # cantidad de fechas distintas. la resta para saber cuantas coincidencias hay.
+  # Cáculo del Nro de coincidencias para ambos casos
+  coincidencias_p[i] = n - length(unique(sample_p))
   coincidencias[i] = n - length(unique(sample)) 
   
 }
- mean mean(x_p == 0); mean(x_p) (x_p == 0); mean(x_p) # Aproximación de P{X=0} y de E(X)
+
+# Proporción de simulaciones sin coincidencias de cumpleaños
+mean(coincidencias_p == 0)
+mean(coincidencias == 0)
+
+# Valor esperado del número de coincidencias de cumpleaños
+mean(coincidencias_p)
+mean(coincidencias)
+
 
 # Frecuencias absolutas
-table(coincidencias)
-table(coincidencias_p)  
 
-# Frecuencias relativas, aprox. P{X=x}
-prop.table(table(coincidencias))  
-prop.table(table(coincidencias_p))  
+# Creamos un dataset para mostrar las distintas frecuencias en ambas distribuciones
+df_frec <- as.data.frame(table(coincidencias))
+df_frec_p <- as.data.frame(table(coincidencias_p))
+
+colnames(df_frec) <- c("Coincidencias", "Uniforme")
+colnames(df_frec_p) <- c("Coincidencias", "No_Uniforme")
+
+frecuencias <- merge(df_frec, df_frec_p, by = "Coincidencias", all = TRUE)
+
+frecuencias$Coincidencias <- as.integer(as.character(frecuencias$Coincidencias))
+frecuencias[is.na(frecuencias)] <- 0
 
 
-barplot(prop.table(table(coincidencias_p)), col = 'skyblue',
-       main = 'Distribución de coincidencias con probabilidad')
+# Convertir a formato largo para graficar
+frecuencias_largas <- pivot_longer(frecuencias,
+                                   cols = c("Uniforme", "No_Uniforme"),
+                                   names_to = "Distribucion",
+                                   values_to = "Frecuencia")
 
-barplot(prop.table(table(coincidencias)), col = 'green',
-        main = 'Distribución')
+# Grafico de barras
+ggplot(frecuencias_largas, aes(x = factor(Coincidencias), y = Frecuencia, fill = Distribucion)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Frecuencias de la cantidad de coincidencias de cumpleaños",
+       x = "Número de coincidencias",
+       y = "Frecuencia",
+       fill = "Distribución") +
+  scale_fill_manual(values = c("Uniforme" = "skyblue", "No_Uniforme" = "salmon")) +
+  theme_minimal()
 
 
-# Anexo: vario el vector p con otra frecuencia relativa, a fin de probar otro caso sesgado.
- p = c(rep(9,91), rep(1,275))
 
- set.seed(1237)       
-N = 100000; n = 25                                  
-coincidencias = coincidencias_p = numeric(N)        
+### Anexo ###
+
+# Varío el vector p con otra Frecuencia Relativa, a fin de probar otro caso sesgado
+p_sesgo = c(rep(9,91), rep(1,275))
+coincidencias_sesgo = numeric(N)
+p_sesgo
 
 for (i in 1:N)
 {
-  sample_p = sample(x = 1:366, size = 25, repl = TRUE, prob =  p)  
-  sample = sample(x = 1:366, size = 25, repl = TRUE)
-  
-  coincidencias_p[i] = n - length(unique(sample_p))   
-  coincidencias[i] = n - length(unique(sample)) 
+  sample_sesgo = sample(x = 1:366, size = 25, repl = TRUE, prob =  p_sesgo)  
+  coincidencias_sesgo[i] = n - length(unique(sample_sesgo))   
 }
 
-# Gráficos
-barplot(prop.table(table(coincidencias_p)), col = 'skyblue',
-        main = 'Distribución de coincidencias con p muy sesgado')
+# Frecuencias absolutas
+table(coincidencias_sesgo)
 
+# Creamos un dataset para graficar
+df_sesgo <- as.data.frame(table(coincidencias_sesgo))
+colnames(df_sesgo) <- c("Coincidencias", "Frecuencia")
+df_sesgo$Coincidencias <- as.integer(as.character(df_sesgo$Coincidencias))
+df_sesgo$Distribucion <- "Sesgada"
+
+# Unimos con el dataset ya existente
+frecuencias_largas <- rbind(frecuencias_largas, df_sesgo)
+
+# Grafico de barras
+ggplot(frecuencias_largas, aes(x = factor(Coincidencias), y = Frecuencia, fill = Distribucion)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Frecuencias de la cantidad de coincidencias de cumpleaños",
+       x = "Número de coincidencias",
+       y = "Frecuencia",
+       fill = "Distribución") +
+  scale_fill_manual(values = c("Uniforme" = "skyblue", "No_Uniforme" = "salmon", "Sesgada" = "seagreen")) +
+  theme_minimal()
