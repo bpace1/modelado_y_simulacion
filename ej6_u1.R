@@ -1,4 +1,4 @@
-library(ggplot2)
+install.packages("tidyr")
 library(ggplot2)
 library(tidyr)
 
@@ -48,7 +48,7 @@ ggplot(df, aes(x = dia, y = prob)) +
 
 ## Ejercicio 6-2 ## 
 
-set.seed(1237)       
+#set.seed(1237)       
 N = 100000; n = 25                                  # Nro de repeticiones; n° personas en la habitación
 coincidencias = coincidencias_p = numeric(N)        # Inicialización del vector "X: n° de coincidencias" para almacenar los resultados.
 
@@ -70,9 +70,31 @@ for (i in 1:N)
 mean(coincidencias_p == 0)
 mean(coincidencias == 0)
 
+
+probabilidad = 1 - mean(coincidencias_ == 0)
+raiz = sqrt(probabilidad * (1 - probabilidad) / N)
+v = c(-1.96, 1.96)
+
+probabilidad + v * raiz
+
+probabilidad_p = 1 - mean(coincidencias_p == 0)
+raiz_p = sqrt(probabilidad_p * (1 - probabilidad_p) / N)
+
+probabilidad_p + v * raiz_p
+
 # Valor esperado del número de coincidencias de cumpleaños
 mean(coincidencias_p)
 mean(coincidencias)
+
+probabilidad = 1 - mean(coincidencias_p == 0)
+
+v = c(-1.96, 1.96)
+
+raiz = sqrt(probabilidad * (1 - probabilidad) / N)
+probabilidad + 1.96 * raiz
+probabilidad - 1.96 * raiz
+# p +- 1.96 sqrt(p*(1-p)/N)
+
 
 
 # Frecuencias absolutas
@@ -132,6 +154,22 @@ df_sesgo$Distribucion <- "Sesgada"
 
 # Unimos con el dataset ya existente
 frecuencias_largas <- rbind(frecuencias_largas, df_sesgo)
+
+
+
+probabilidad_sesgo = 1 - mean(coincidencias_sesgo == 0)
+raiz_sesgada = sqrt(probabilidad_sesgo * (1 - probabilidad_sesgo) / N)
+
+# de forma manual
+probabilidad_sesgo + 1.96 * raiz_sesgada
+probabilidad_sesgo - 1.96 * raiz_sesgada
+
+# lo mismo pero con un vector
+
+
+probabilidad_sesgo + v * raiz_sesgada
+
+
 
 # Grafico de barras
 ggplot(frecuencias_largas, aes(x = factor(Coincidencias), y = Frecuencia, fill = Distribucion)) +
